@@ -1,6 +1,22 @@
 # Shortest Path
 Shortest path visiting n nodes of a graph
 
+# How to run
+Make a virtualenv
+`$ python3 -m venv shortest_path_env`
+
+Clone this repo
+`$ git clone git@github.com:fepe55/shortest_path.git`
+
+CD into the directory
+`$ cd shortest_path`
+
+Install the requirements
+`$ pip install -r requirements.txt`
+
+Run the graph
+`$ python graph.py`
+
 # OS Requirements
 
 ## tkinter
