@@ -5,6 +5,12 @@ Shortest path visiting n nodes of a graph
 Make a virtualenv
 `$ python3 -m venv shortest_path_env`
 
+CD into it
+`$ cd shortest_path_env`
+
+Activate it
+`$ source bin/activate`
+
 Clone this repo
 `$ git clone git@github.com:fepe55/shortest_path.git`
 
