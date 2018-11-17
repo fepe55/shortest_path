@@ -51,7 +51,7 @@ def _check_nodes_superposition(positions):
 def shortest_path():
     halls = [Hall('Hall number {}'.format(i), i) for i in range(26)]
 
-    G = nx.Graph()
+    G = nx.DiGraph()
     G.add_nodes_from(halls)
 
     edges = {
@@ -117,7 +117,46 @@ def shortest_path():
         for neighbour in neighbours:
             G.add_edge(halls[vertix], halls[neighbour])
 
-    nx.draw(G, pos, with_labels=True, node_size=2500)
+    start = halls[0]
+    last_visited = start
+    must_visit = [halls[18], halls[17], halls[24], ]
+    visited = [halls[0], ]
+    path = [halls[0], ]
+    while must_visit:
+        next_node = None
+        minimum = None
+        for node in must_visit:
+            path_length = nx.dijkstra_path_length(G, last_visited, node)
+            if not minimum or path_length < minimum:
+                minimum = path_length
+                next_node = node
+        j = nx.dijkstra_path(G, last_visited, next_node)
+        path.extend(j[1:])
+        last_visited = next_node
+        visited.append(next_node)
+        must_visit.remove(next_node)
+
+    """
+    Convert path made of nodes into edges by taking them two at a time
+    """
+    path_edges = [(path[i], path[i+1]) for i in range(len(path)-1)]
+
+    """
+    For every edge in the graph, if the edge is in the path, it gets painted
+    red. If it isn't, defaults to key (black)
+    """
+    colors = []
+    for edge in G.edges():
+        if edge in path_edges:
+            colors.append('r')
+        else:
+            colors.append('k')
+
+    print(path)
+
+    nx.draw(G, pos, with_labels=True, edge_color=colors, node_size=2500)
+    # nx.draw_networkx_nodes(G, pos, nodelist=G.nodes(), node_size=2500)
+    # nx.draw_networkx_edges(G, pos, edgelist=path_edges, edge_color='r')
     # plt.savefig("graph.png")
     plt.show()
 
