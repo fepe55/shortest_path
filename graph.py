@@ -14,6 +14,70 @@ class Hall:
         return 'hall {}'.format(self.number)
 
 
+def _get_edges():
+    edges = {
+        0: [1, 9, 10, 12, 23],
+        1: [0, 2, 3],
+        2: [1],
+        3: [1, 4],
+        4: [3, 5],
+        5: [4, 6, 9],
+        6: [5],
+        7: [9],
+        8: [9],
+        9: [0, 5, 7, 8, 10],
+        10: [0, 9, 12],
+        11: [12],
+        12: [0, 10, 11, 13, 14],
+        13: [12],
+        14: [12, 15],
+        15: [14, 16, 18, 20, 25],
+        16: [15, 17],
+        17: [16],
+        18: [15, 20],
+        19: [20],
+        20: [15, 18, 19, 21, 22],
+        21: [20],
+        22: [20, 23],
+        23: [22, 24, 0],
+        24: [23],
+        25: [15],
+    }
+    return edges
+
+
+def _get_positions(halls):
+    positions = {
+        halls[0]: (0, 0),
+        halls[1]: (-2, -2),
+        halls[2]: (-2, -1),
+        halls[3]: (-3, -1),
+        halls[4]: (-3, 0),
+        halls[5]: (-3, 1),
+        halls[6]: (-3, 2),
+        halls[7]: (-2, 2),
+        halls[8]: (-1, 2),
+        halls[9]: (-2, 1),
+        halls[10]: (0, 2),
+        halls[11]: (1, 2),
+        halls[12]: (1, 1),
+        halls[13]: (2, 2),
+        halls[14]: (3, 2),
+        halls[15]: (4, 2),
+        halls[16]: (5, 2),
+        halls[17]: (6, 2),
+        halls[18]: (3, 0),
+        halls[19]: (3, -1),
+        halls[20]: (4, -1),
+        halls[21]: (5, -1),
+        halls[22]: (4, -2),
+        halls[23]: (3, -2),
+        halls[24]: (2, -1),
+        halls[25]: (4, 3),
+    }
+    return positions
+
+
 def _check_edges_consistency(edges):
     """
     Checks that there are no two nodes N and M such as N shows in M's
@@ -48,93 +112,50 @@ def _check_nodes_superposition(positions):
         raise Exception('There are at least two nodes sharing position')
 
 
-def shortest_path():
-    halls = [Hall('Hall number {}'.format(i), i) for i in range(26)]
-
-    G = nx.DiGraph()
-    G.add_nodes_from(halls)
-
-    edges = {
-        0: [1, 9, 10, 12, 23],
-        1: [0, 2, 3],
-        2: [1],
-        3: [1, 4],
-        4: [3, 5],
-        5: [4, 6, 9],
-        6: [5],
-        7: [9],
-        8: [9],
-        9: [0, 5, 7, 8, 10],
-        10: [0, 9, 12],
-        11: [12],
-        12: [0, 10, 11, 13, 14],
-        13: [12],
-        14: [12, 15],
-        15: [14, 16, 18, 20, 25],
-        16: [15, 17],
-        17: [16],
-        18: [15, 20],
-        19: [20],
-        20: [15, 18, 19, 21, 22],
-        21: [20],
-        22: [20, 23],
-        23: [22, 24, 0],
-        24: [23],
-        25: [15],
-    }
-    pos = {
-        halls[0]: (0, 0),
-        halls[1]: (-2, -2),
-        halls[2]: (-2, -1),
-        halls[3]: (-3, -1),
-        halls[4]: (-3, 0),
-        halls[5]: (-3, 1),
-        halls[6]: (-3, 2),
-        halls[7]: (-2, 2),
-        halls[8]: (-1, 2),
-        halls[9]: (-2, 1),
-        halls[10]: (0, 2),
-        halls[11]: (1, 2),
-        halls[12]: (1, 1),
-        halls[13]: (2, 2),
-        halls[14]: (3, 2),
-        halls[15]: (4, 2),
-        halls[16]: (5, 2),
-        halls[17]: (6, 2),
-        halls[18]: (3, 0),
-        halls[19]: (3, -1),
-        halls[20]: (4, -1),
-        halls[21]: (5, -1),
-        halls[22]: (4, -2),
-        halls[23]: (3, -2),
-        halls[24]: (2, -1),
-        halls[25]: (4, 3),
-    }
-
-    _check_edges_consistency(edges)
-    _check_nodes_superposition(pos)
+def build_graph(nodes, edges):
+    G = nx.MultiDiGraph()
+    G.add_nodes_from(nodes)
     for vertix, neighbours in edges.items():
         for neighbour in neighbours:
-            G.add_edge(halls[vertix], halls[neighbour])
+            G.add_edge(nodes[vertix], nodes[neighbour])
+    return G
 
-    start = halls[0]
+
+def shortest_path(G, start, must_visit):
+    _must_visit = must_visit[::-1]
     last_visited = start
-    must_visit = [halls[18], halls[17], halls[24], ]
-    visited = [halls[0], ]
-    path = [halls[0], ]
-    while must_visit:
+    visited = [start, ]
+    path = [start, ]
+    while _must_visit:
         next_node = None
         minimum = None
-        for node in must_visit:
+        for node in _must_visit:
             path_length = nx.dijkstra_path_length(G, last_visited, node)
             if not minimum or path_length < minimum:
                 minimum = path_length
                 next_node = node
-        j = nx.dijkstra_path(G, last_visited, next_node)
-        path.extend(j[1:])
+        current_path = nx.dijkstra_path(G, last_visited, next_node)
+        # Remove the first one or else it'd be duplicated
+        path.extend(current_path[1:])
         last_visited = next_node
         visited.append(next_node)
-        must_visit.remove(next_node)
+        _must_visit.remove(next_node)
+    return path
+
+if __name__ == '__main__':
+    NODE_SIZE = 2000
+    halls = [Hall('Hall number {}'.format(i), i) for i in range(26)]
+    edges = _get_edges()
+    _check_edges_consistency(edges)
+
+    positions = _get_positions(halls)
+    _check_nodes_superposition(positions)
+
+    G = build_graph(halls, edges)
+    start = halls[0]
+    must_visit = [halls[5], halls[7], halls[22], halls[15], halls[17], ]
+
+    path = shortest_path(G, start, must_visit)
 
     """
     Convert path made of nodes into edges by taking them two at a time
@@ -142,23 +163,57 @@ def shortest_path():
     path_edges = [(path[i], path[i+1]) for i in range(len(path)-1)]
 
     """
-    For every edge in the graph, if the edge is in the path, it gets painted
-    red. If it isn't, defaults to key (black)
+    Add the order of the edge in the path as its label
     """
-    colors = []
+    edge_labels = {}
     for edge in G.edges():
         if edge in path_edges:
-            colors.append('r')
+            label = path_edges.index(edge)
         else:
-            colors.append('k')
+            label = ''
+        edge_labels[edge] = label
 
-    print(path)
+    nodes_not_in_path = [node for node in G.nodes() if node not in path]
+    edges_not_in_path = [edge for edge in G.edges() if edge not in path_edges]
 
-    nx.draw(G, pos, with_labels=True, edge_color=colors, node_size=2500)
-    # nx.draw_networkx_nodes(G, pos, nodelist=G.nodes(), node_size=2500)
-    # nx.draw_networkx_edges(G, pos, edgelist=path_edges, edge_color='r')
+    # NODES
+    # First we draw the nodes that are not in the path, transparent
+    nx.draw_networkx_nodes(
+        G, positions, nodelist=nodes_not_in_path, node_size=NODE_SIZE,
+        alpha=0.2,
+    )
+    # Then, we draw the nodes that ARE in the path
+    nx.draw_networkx_nodes(
+        G, positions, nodelist=path, node_size=NODE_SIZE,
+    )
+    # And lastly, the nodes that must be visited, have an edge
+    nx.draw_networkx_nodes(
+        G, positions, nodelist=must_visit,
+        node_size=NODE_SIZE, edgecolors='k', linewidths=2,
+    )
+
+    # NODE LABELS
+    nx.draw_networkx_labels(
+        G, positions, node_size=NODE_SIZE,
+    )
+
+    # EDGES
+    # First we draw the edges that are not in the path, transparent
+    nx.draw_networkx_edges(
+        G, positions, edgelist=edges_not_in_path, edge_color='k', alpha=0.1,
+        node_size=NODE_SIZE,
+    )
+    # And then we draw that edges that ARE in the path, in red
+    nx.draw_networkx_edges(
+        G, positions, edgelist=path_edges, edge_color='r', node_size=NODE_SIZE,
+    )
+
+    # EDGES LABELS
+    nx.draw_networkx_edge_labels(
+        G, positions, edge_labels=edge_labels, label_pos=0.7,
+        node_size=NODE_SIZE
+    )
+
     # plt.savefig("graph.png")
+    plt.axis('off')
     plt.show()
-
-if __name__ == '__main__':
-    shortest_path()
