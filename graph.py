@@ -14,7 +14,7 @@ class Hall:
         return 'hall {}'.format(self.number)
 
 
-def _get_edges():
+def _get_edges_first_floor():
     edges = {
         0: [1, 9, 10, 12, 23],
         1: [0, 2, 3],
@@ -46,7 +46,7 @@ def _get_edges():
     return edges
 
 
-def _get_positions(halls):
+def _get_positions_first_floor(halls):
     positions = {
         halls[0]: (0, 0),
         halls[1]: (-2, -2),
@@ -74,6 +74,52 @@ def _get_positions(halls):
         halls[23]: (3, -2),
         halls[24]: (2, -1),
         halls[25]: (4, 3),
+    }
+    return positions
+
+
+def _get_edges_second_floor():
+    edges = {
+        25-25: [26-25, 39-25, 41-25, ],
+        26-25: [25-25, 27-25, 28-25, ],
+        27-25: [26-25, ],
+        28-25: [29-25, 26-25, ],
+        29-25: [30-25, 28-25, ],
+        30-25: [29-25, 31-25],
+        31-25: [30-25, 32-25, ],
+        32-25: [33-25, 31-25, ],
+        33-25: [32-25, 34-25, 41-25, ],
+        34-25: [33-25, 35-25],
+        35-25: [34-25, 36-25],
+        36-25: [35-25, 37-25, ],
+        37-25: [38-25, 36-25, ],
+        38-25: [39-25, 37-25, ],
+        39-25: [40-25, 25-25, 38-25, ],
+        40-25: [39-25, ],
+        41-25: [33-25, 25-25],
+    }
+    return edges
+
+
+def _get_positions_second_floor(halls):
+    positions = {
+        halls[25-25]: (0, -1),
+        halls[26-25]: (-1, -1),
+        halls[27-25]: (-1, 0),
+        halls[28-25]: (-3, -1),
+        halls[29-25]: (-3, 0),
+        halls[30-25]: (-3, 1),
+        halls[31-25]: (-2, 1),
+        halls[32-25]: (-1, 1),
+        halls[33-25]: (0, 1),
+        halls[34-25]: (1, 1),
+        halls[35-25]: (2, 1),
+        halls[36-25]: (3, 1),
+        halls[37-25]: (3, 0),
+        halls[38-25]: (3, -1),
+        halls[39-25]: (1, -1),
+        halls[40-25]: (1, 0),
+        halls[41-25]: (0, 0),
     }
     return positions
 
@@ -109,6 +155,8 @@ def _check_nodes_superposition(positions):
     """
     positions = [position for node, position in positions.items()]
     if len(positions) != len(set(positions)):
+        print(positions)
+        print(set(positions))
         raise Exception('There are at least two nodes sharing position')
 
 
@@ -142,21 +190,42 @@ def shortest_path(G, start, must_visit):
         _must_visit.remove(next_node)
     return path
 
-if __name__ == '__main__':
-    NODE_SIZE = 2000
+
+def first_floor():
     halls = [Hall('Hall number {}'.format(i), i) for i in range(26)]
-    edges = _get_edges()
+    start = halls[0]
+    must_visit = [halls[1], halls[4], halls[24], halls[19], halls[7], ]
+
+    edges = _get_edges_first_floor()
     _check_edges_consistency(edges)
 
-    positions = _get_positions(halls)
+    positions = _get_positions_first_floor(halls)
     _check_nodes_superposition(positions)
 
     G = build_graph(halls, edges)
-    start = halls[0]
-    must_visit = [halls[5], halls[7], halls[22], halls[15], halls[17], ]
 
+    graph(G, start, must_visit, positions)
+
+
+def second_floor():
+    halls = [Hall('Hall number {}'.format(i+25), i+25) for i in range(17)]
+    start = halls[41-25]
+    must_visit = [halls[30-25], halls[36-25], ]
+
+    edges = _get_edges_second_floor()
+    _check_edges_consistency(edges)
+
+    positions = _get_positions_second_floor(halls)
+    _check_nodes_superposition(positions)
+
+    G = build_graph(halls, edges)
+
+    graph(G, start, must_visit, positions)
+
+
+def graph(G, start, must_visit, positions):
+    NODE_SIZE = 2000
     path = shortest_path(G, start, must_visit)
-
     """
     Convert path made of nodes into edges by taking them two at a time
     """
@@ -216,4 +285,12 @@ if __name__ == '__main__':
 
     # plt.savefig("graph.png")
     plt.axis('off')
+    # plt.show()
+
+
+if __name__ == '__main__':
+    plt.figure(1)
+    first_floor()
+    plt.figure(2)
+    second_floor()
     plt.show()
